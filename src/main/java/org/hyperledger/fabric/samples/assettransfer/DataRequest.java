@@ -4,7 +4,7 @@
 
 package org.hyperledger.fabric.samples.assettransfer;
 
-import java.util.Objects;
+import java.util.*;
 
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
@@ -21,13 +21,26 @@ public final class DataRequest {
     private final String description;
 
     @Property()
-    private final Long createdOn;
+    private final String createdOn;
 
     @Property()
     private final String owner;
 
     @Property()
-    private final boolean deleted;
+    private String attributeCodeList;
+
+    @Property()
+    private String approvers;
+
+    @Property()
+    private String campaignId;
+
+    @Property()
+    private final Boolean deleted;
+
+    public static enum Status {
+        approved, rejected, pending,deemedApproved, deemedRejected
+    }
 
     public String getRequestId() {
         return requestId;
@@ -37,7 +50,7 @@ public final class DataRequest {
         return description;
     }
 
-    public Long getCreatedOn() {
+    public String getCreatedOn() {
         return createdOn;
     }
 
@@ -45,17 +58,27 @@ public final class DataRequest {
         return owner;
     }
 
+    public String getAttributeCodeList(){return attributeCodeList;}
+
+    public String getApprovers(){return approvers;}
+
+    public String getCampaignId(){return campaignId;}
+
     public Boolean getDeleted() {
         return deleted;
     }
 
     public DataRequest(@JsonProperty("requestId") final String requestId, @JsonProperty("description") final String description,
-                       @JsonProperty("createdOn") final Long createdOn, @JsonProperty("owner") final String owner,
-                       @JsonProperty("deleted") final Boolean deleted) {
+                       @JsonProperty("createdOn") final String createdOn, @JsonProperty("owner") final String owner,
+                       @JsonProperty("attributeCodeList") final String attributeCodeList, @JsonProperty("approvers") final String approvers,
+                       @JsonProperty("campaignId") final String campaignId, @JsonProperty("deleted") final Boolean deleted) {
         this.requestId = requestId;
         this.description = description;
         this.createdOn = createdOn;
         this.owner = owner;
+        this.attributeCodeList = attributeCodeList;
+        this.approvers = approvers;
+        this.campaignId = campaignId;
         this.deleted = deleted;
     }
 
@@ -63,18 +86,26 @@ public final class DataRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        DataRequest dataRequest = (DataRequest) o;
-        return deleted == dataRequest.deleted && Objects.equals(requestId, dataRequest.requestId) && Objects.equals(description, dataRequest.description) && Objects.equals(createdOn, dataRequest.createdOn) && Objects.equals(owner, dataRequest.owner);
+        DataRequest that = (DataRequest) o;
+        return deleted == that.deleted && Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(requestId, description, createdOn, owner, deleted);
+        return Objects.hash(requestId, description, createdOn, owner, attributeCodeList, approvers, campaignId, deleted);
     }
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + " [requestId=" + requestId + ", description="
-                + description + ", createdOn=" + createdOn + ", owner=" + owner + ", deleted=" + deleted + "]";
+        return "DataRequest{" +
+                "requestId='" + requestId + '\'' +
+                ", description='" + description + '\'' +
+                ", createdOn=" + createdOn +
+                ", owner='" + owner + '\'' +
+                ", attributeCodeList=" + attributeCodeList +
+                ", approvers=" + approvers +
+                ", campaignId='" + campaignId + '\'' +
+                ", deleted=" + deleted +
+                '}';
     }
 }

@@ -4,8 +4,7 @@
 
 package org.hyperledger.fabric.samples.assettransfer;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 
 import org.hyperledger.fabric.contract.Context;
@@ -24,7 +23,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import com.owlike.genson.Genson;
 
 @Contract(
-        name = "secondattempt",
+        name = "thirdattempt",
         info = @Info(
                 title = "Asset Transfer",
                 description = "The hyperlegendary asset transfer",
@@ -53,13 +52,6 @@ public final class DataTransferRequest implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public void InitLedger(final Context ctx) {
-        putAsset(ctx, new DataRequest("asset1", "blue", 5L, "Tomoko", false));
-        putAsset(ctx, new DataRequest("asset2", "red", 5L, "Brad", false));
-        putAsset(ctx, new DataRequest("asset3", "green", 10L, "Jin Soo", false));
-        putAsset(ctx, new DataRequest("asset4", "yellow", 10L, "Max", false));
-        putAsset(ctx, new DataRequest("asset5", "black", 15L, "Adrian", false));
-        putAsset(ctx, new DataRequest("asset6", "white", 15L, "Michel", false));
-
     }
 
     /**
@@ -74,8 +66,9 @@ public final class DataTransferRequest implements ContractInterface {
      * @return the created asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public DataRequest CreateAsset(final Context ctx, final String requestId, final String description, final Long createdOn,
-                                   final String owner, final Boolean deleted) {
+    public DataRequest CreateAsset(final Context ctx, final String requestId, final String description, final String createdOn,
+                                   final String owner, String attributeCodeList, String approvers,
+                                   String campaignId, final Boolean deleted) {
 
         if (AssetExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s already exists", requestId);
@@ -83,7 +76,7 @@ public final class DataTransferRequest implements ContractInterface {
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_ALREADY_EXISTS.toString());
         }
 
-        return putAsset(ctx, new DataRequest(requestId, description, createdOn, owner, deleted));
+        return putAsset(ctx, new DataRequest(requestId, description, createdOn, owner, attributeCodeList, approvers, campaignId, deleted));
     }
 
     private DataRequest putAsset(final Context ctx, final DataRequest dataRequest) {
@@ -126,8 +119,9 @@ public final class DataTransferRequest implements ContractInterface {
      * @return the transferred asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public DataRequest UpdateAsset(final Context ctx, final String requestId, final String description, final Long createdOn,
-                                   final String owner, final Boolean deleted) {
+    public DataRequest UpdateAsset(final Context ctx, final String requestId, final String description, final String createdOn,
+                                   final String owner, String attributeCodeList, String approvers,
+                                   String campaignId, final Boolean deleted) {
 
         if (!AssetExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
@@ -135,7 +129,7 @@ public final class DataTransferRequest implements ContractInterface {
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
         }
 
-        return putAsset(ctx, new DataRequest(requestId, description, createdOn, owner, deleted));
+        return putAsset(ctx, new DataRequest(requestId, description, createdOn, owner, attributeCodeList, approvers, campaignId, deleted));
     }
 
     /**
@@ -189,7 +183,7 @@ public final class DataTransferRequest implements ContractInterface {
 
         DataRequest dataRequest = genson.deserialize(assetJSON, DataRequest.class);
 
-        putAsset(ctx, new DataRequest(dataRequest.getRequestId(), dataRequest.getDescription(), dataRequest.getCreatedOn(), newOwner, dataRequest.getDeleted()));
+        putAsset(ctx, new DataRequest(dataRequest.getRequestId(), dataRequest.getDescription(), dataRequest.getCreatedOn(), newOwner, dataRequest.getAttributeCodeList(), dataRequest.getApprovers(), dataRequest.getCampaignId(), dataRequest.getDeleted()));
 
         return dataRequest.getOwner();
     }
