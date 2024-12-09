@@ -23,7 +23,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import com.owlike.genson.Genson;
 
 @Contract(
-        name = "dataRequestBlockchain",
+        name = "basic",
         info = @Info(
                 title = "Asset Transfer",
                 description = "The hyperlegendary asset transfer",
@@ -192,7 +192,7 @@ public final class DataTransferRequest implements ContractInterface {
      * @return array of assets found on the ledger
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public List<DataRequest> GetAllAssets(final Context ctx) {
+    public String GetAllDataRequest(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
         List<DataRequest> queryResults = new ArrayList<>();
@@ -209,6 +209,6 @@ public final class DataTransferRequest implements ContractInterface {
             queryResults.add(dataRequest);
         }
 
-        return queryResults;
+        return genson.serialize(queryResults);
     }
 }
