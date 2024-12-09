@@ -23,7 +23,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import com.owlike.genson.Genson;
 
 @Contract(
-        name = "basic",
+        name = "dataRequestBlockchain",
         info = @Info(
                 title = "Asset Transfer",
                 description = "The hyperlegendary asset transfer",
@@ -108,16 +108,28 @@ public final class DataTransferRequest implements ContractInterface {
     }
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public DataRequest FindByCampaignId(final Context ctx, final String campaignId) {
-        String assetJSON = ctx.getStub().getStringState(campaignId);
+    public String FindByCampaignId(final Context ctx, final String campaignId) {
+        List<DataRequest> matchingAssets = new ArrayList<>();
 
-        if (assetJSON == null || assetJSON.isEmpty()) {
-            String errorMessage = String.format("Asset %s does not exist", campaignId);
+        // Use getStateByRange to iterate over all assets and filter by campaignId
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
+
+        for (KeyValue result : results) {
+            DataRequest asset = genson.deserialize(result.getStringValue(), DataRequest.class);
+
+            // Check if the asset is not deleted and if the campaignId matches
+            if (!Boolean.TRUE.equals(asset.getDeleted()) && asset.getCampaignId().equals(campaignId)) {
+                matchingAssets.add(asset);
+            }
+        }
+
+        if (matchingAssets.isEmpty()) {
+            String errorMessage = String.format("No non-deleted assets found for Campaign ID %s", campaignId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
         }
 
-        return genson.deserialize(assetJSON, DataRequest.class);
+        return genson.serialize(matchingAssets);
     }
 
     /**
@@ -192,7 +204,7 @@ public final class DataTransferRequest implements ContractInterface {
      * @return array of assets found on the ledger
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String GetAllDataRequest(final Context ctx) {
+    public String GetAllDataRequests(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
         List<DataRequest> queryResults = new ArrayList<>();
