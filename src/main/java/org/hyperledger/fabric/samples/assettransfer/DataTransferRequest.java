@@ -23,7 +23,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import com.owlike.genson.Genson;
 
 @Contract(
-        name = "thirdattempt",
+        name = "dataRequestBlockchain",
         info = @Info(
                 title = "Asset Transfer",
                 description = "The hyperlegendary asset transfer",
@@ -66,11 +66,11 @@ public final class DataTransferRequest implements ContractInterface {
      * @return the created asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public DataRequest CreateAsset(final Context ctx, final String requestId, final String description, final String createdOn,
+    public DataRequest CreateDataRequest(final Context ctx, final String requestId, final String description, final String createdOn,
                                    final String owner, String attributeCodeList, String approvers,
                                    String campaignId, final Boolean deleted) {
 
-        if (AssetExists(ctx, requestId)) {
+        if (DataRequestExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s already exists", requestId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_ALREADY_EXISTS.toString());
@@ -95,11 +95,24 @@ public final class DataTransferRequest implements ContractInterface {
      * @return the asset found on the ledger if there was one
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public DataRequest ReadAsset(final Context ctx, final String requestId) {
+    public DataRequest FindByRequestId(final Context ctx, final String requestId) {
         String assetJSON = ctx.getStub().getStringState(requestId);
 
         if (assetJSON == null || assetJSON.isEmpty()) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
+        }
+
+        return genson.deserialize(assetJSON, DataRequest.class);
+    }
+
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public DataRequest FindByCampaignId(final Context ctx, final String campaignId) {
+        String assetJSON = ctx.getStub().getStringState(campaignId);
+
+        if (assetJSON == null || assetJSON.isEmpty()) {
+            String errorMessage = String.format("Asset %s does not exist", campaignId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
         }
@@ -119,11 +132,11 @@ public final class DataTransferRequest implements ContractInterface {
      * @return the transferred asset
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public DataRequest UpdateAsset(final Context ctx, final String requestId, final String description, final String createdOn,
+    public DataRequest UpdateDataRequest(final Context ctx, final String requestId, final String description, final String createdOn,
                                    final String owner, String attributeCodeList, String approvers,
                                    String campaignId, final Boolean deleted) {
 
-        if (!AssetExists(ctx, requestId)) {
+        if (!DataRequestExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
@@ -139,8 +152,8 @@ public final class DataTransferRequest implements ContractInterface {
      * @param requestId the ID of the asset being deleted
      */
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public void DeleteAsset(final Context ctx, final String requestId) {
-        if (!AssetExists(ctx, requestId)) {
+    public void DeleteDataRequest(final Context ctx, final String requestId) {
+        if (!DataRequestExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
@@ -157,7 +170,7 @@ public final class DataTransferRequest implements ContractInterface {
      * @return boolean indicating the existence of the asset
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public boolean AssetExists(final Context ctx, final String requestId) {
+    public boolean DataRequestExists(final Context ctx, final String requestId) {
         String assetJSON = ctx.getStub().getStringState(requestId);
 
         return (assetJSON != null && !assetJSON.isEmpty());
@@ -171,22 +184,6 @@ public final class DataTransferRequest implements ContractInterface {
      * @param newOwner the new owner
      * @return the old owner
      */
-    @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public String TransferAsset(final Context ctx, final String requestId, final String newOwner) {
-        String assetJSON = ctx.getStub().getStringState(requestId);
-
-        if (assetJSON == null || assetJSON.isEmpty()) {
-            String errorMessage = String.format("Asset %s does not exist", requestId);
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
-        }
-
-        DataRequest dataRequest = genson.deserialize(assetJSON, DataRequest.class);
-
-        putAsset(ctx, new DataRequest(dataRequest.getRequestId(), dataRequest.getDescription(), dataRequest.getCreatedOn(), newOwner, dataRequest.getAttributeCodeList(), dataRequest.getApprovers(), dataRequest.getCampaignId(), dataRequest.getDeleted()));
-
-        return dataRequest.getOwner();
-    }
 
     /**
      * Retrieves all assets from the ledger.
@@ -195,7 +192,7 @@ public final class DataTransferRequest implements ContractInterface {
      * @return array of assets found on the ledger
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String GetAllAssets(final Context ctx) {
+    public List<DataRequest> GetAllAssets(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
 
         List<DataRequest> queryResults = new ArrayList<>();
@@ -212,6 +209,6 @@ public final class DataTransferRequest implements ContractInterface {
             queryResults.add(dataRequest);
         }
 
-        return genson.serialize(queryResults);
+        return queryResults;
     }
 }
