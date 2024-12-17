@@ -16,7 +16,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import com.owlike.genson.Genson;
 
 @Contract(
-        name = "notificationRequestBlockchain",
+        name = "notificationRequestBlock",
         info = @Info(
                 title = "Notification Handler",
                 description = "The hyperlegendary notification transfer",

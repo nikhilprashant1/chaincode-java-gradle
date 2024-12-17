@@ -23,7 +23,7 @@ import org.hyperledger.fabric.shim.ledger.QueryResultsIterator;
 import com.owlike.genson.Genson;
 
 @Contract(
-        name = "dataRequestBlockchain",
+        name = "dataRequestBlock",
         info = @Info(
                 title = "Asset Transfer",
                 description = "The hyperlegendary asset transfer",
