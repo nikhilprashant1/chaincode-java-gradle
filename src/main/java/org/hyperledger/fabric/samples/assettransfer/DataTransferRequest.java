@@ -33,16 +33,16 @@ import com.owlike.genson.Genson;
                         url = "http://www.apache.org/licenses/LICENSE-2.0.html"),
                 contact = @Contact(
                         email = "a.transfer@example.com",
-                        name = "Adrian Transfer",
+                        name = "Data Transfer",
                         url = "https://hyperledger.example.com")))
 @Default
 public final class DataTransferRequest implements ContractInterface {
 
     private final Genson genson = new Genson();
 
-    private enum AssetTransferErrors {
-        ASSET_NOT_FOUND,
-        ASSET_ALREADY_EXISTS
+    private enum DataTransferErrors {
+        DATA_NOT_FOUND,
+        DATA_ALREADY_EXISTS
     }
 
     /**
@@ -73,7 +73,7 @@ public final class DataTransferRequest implements ContractInterface {
         if (DataRequestExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s already exists", requestId);
             System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_ALREADY_EXISTS.toString());
+            throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_ALREADY_EXISTS.toString());
         }
 
         return putAsset(ctx, new DataRequest(requestId, description, createdOn, owner, attributeCodeList, approvers, campaignId, deleted));
@@ -101,7 +101,7 @@ public final class DataTransferRequest implements ContractInterface {
         if (assetJSON == null || assetJSON.isEmpty()) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
             System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
+            throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
 
         return genson.deserialize(assetJSON, DataRequest.class);
@@ -126,7 +126,7 @@ public final class DataTransferRequest implements ContractInterface {
         if (matchingAssets.isEmpty()) {
             String errorMessage = String.format("No non-deleted assets found for Campaign ID %s", campaignId);
             System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
+            throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
 
         return genson.serialize(matchingAssets);
@@ -151,7 +151,7 @@ public final class DataTransferRequest implements ContractInterface {
         if (!DataRequestExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
             System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
+            throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
 
         return putAsset(ctx, new DataRequest(requestId, description, createdOn, owner, attributeCodeList, approvers, campaignId, deleted));
@@ -168,7 +168,7 @@ public final class DataTransferRequest implements ContractInterface {
         if (!DataRequestExists(ctx, requestId)) {
             String errorMessage = String.format("Asset %s does not exist", requestId);
             System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.ASSET_NOT_FOUND.toString());
+            throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
 
         ctx.getStub().delState(requestId);
