@@ -24,6 +24,12 @@ public final class DataRequest {
     private final String createdOn;
 
     @Property()
+    private String updatedOn;
+
+    @Property()
+    private String createdBy;
+
+    @Property()
     private final String owner;
 
     @Property()
@@ -54,6 +60,14 @@ public final class DataRequest {
         return createdOn;
     }
 
+    public String getUpdatedOn() {
+        return updatedOn;
+    }
+
+    public String getCreatedBy() {
+        return createdBy;
+    }
+
     public String getOwner() {
         return owner;
     }
@@ -69,12 +83,15 @@ public final class DataRequest {
     }
 
     public DataRequest(@JsonProperty("requestId") final String requestId, @JsonProperty("description") final String description,
-                       @JsonProperty("createdOn") final String createdOn, @JsonProperty("owner") final String owner,
+                       @JsonProperty("createdOn") final String createdOn, @JsonProperty("updatedOn") final String updatedOn,
+                       @JsonProperty("createdBy") final String createdBy, @JsonProperty("owner") final String owner,
                        @JsonProperty("attributeCodeList") final String attributeCodeList, @JsonProperty("approvers") final String approvers,
                        @JsonProperty("campaignId") final String campaignId, @JsonProperty("deleted") final Boolean deleted) {
         this.requestId = requestId;
         this.description = description;
         this.createdOn = createdOn;
+        this.updatedOn = updatedOn;
+        this.createdBy = createdBy;
         this.owner = owner;
         this.attributeCodeList = attributeCodeList;
         this.approvers = approvers;
@@ -87,12 +104,12 @@ public final class DataRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DataRequest that = (DataRequest) o;
-        return deleted == that.deleted && Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId);
+        return Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(updatedOn, that.updatedOn) && Objects.equals(createdBy, that.createdBy) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId) && Objects.equals(deleted, that.deleted);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(requestId, description, createdOn, owner, attributeCodeList, approvers, campaignId, deleted);
+        return Objects.hash(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted);
     }
 
     @Override
@@ -100,12 +117,15 @@ public final class DataRequest {
         return "DataRequest{" +
                 "requestId='" + requestId + '\'' +
                 ", description='" + description + '\'' +
-                ", createdOn=" + createdOn +
+                ", createdOn='" + createdOn + '\'' +
+                ", updatedOn='" + updatedOn + '\'' +
+                ", createdBy='" + createdBy + '\'' +
                 ", owner='" + owner + '\'' +
-                ", attributeCodeList=" + attributeCodeList +
-                ", approvers=" + approvers +
+                ", attributeCodeList='" + attributeCodeList + '\'' +
+                ", approvers='" + approvers + '\'' +
                 ", campaignId='" + campaignId + '\'' +
                 ", deleted=" + deleted +
                 '}';
     }
+
 }

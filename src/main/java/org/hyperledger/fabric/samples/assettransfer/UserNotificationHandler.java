@@ -47,7 +47,7 @@ public final class UserNotificationHandler implements ContractInterface {
             final String notificationId,
             final String requestId,
             final String campaignId,
-            final long count,
+            final String count,
             final String attributeList,
             final String owner,
             final String message,
@@ -86,7 +86,7 @@ public final class UserNotificationHandler implements ContractInterface {
             final String notificationId,
             final String requestId,
             final String campaignId,
-            final long count,
+            final String count,
             final String attributeList,
             final String owner,
             final String message,
@@ -120,6 +120,28 @@ public final class UserNotificationHandler implements ContractInterface {
 
         if (matchingAssets.isEmpty()) {
             String errorMessage = String.format("No non-deleted assets found for Owner %s", owner);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
+        }
+
+        return genson.serialize(matchingAssets);
+    }
+
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public String FindByRequestId(final Context ctx, final String requestId) {
+        List<UserNotification> matchingAssets = new ArrayList<>();
+
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
+
+        for (KeyValue result : results) {
+            UserNotification userNotification = genson.deserialize(result.getStringValue(), UserNotification.class);
+            if (!Boolean.TRUE.equals(userNotification.getRequestId().equals(requestId))) {
+                matchingAssets.add(userNotification);
+            }
+        }
+
+        if (matchingAssets.isEmpty()) {
+            String errorMessage = String.format("No non-deleted assets found for Request Id %s", requestId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
         }

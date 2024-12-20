@@ -20,7 +20,7 @@ public class UserNotification {
     private final String campaignId;
 
     @Property()
-    private final long count;
+    private final String count;
 
     @Property()
     private final String attributeList;
@@ -49,7 +49,7 @@ public class UserNotification {
         return campaignId;
     }
 
-    public long getCount() {
+    public String getCount() {
         return count;
     }
 
@@ -77,7 +77,7 @@ public class UserNotification {
             @JsonProperty("id") final String id,
             @JsonProperty("requestId") final String requestId,
             @JsonProperty("campaignId") final String campaignId,
-            @JsonProperty("count") final long count,
+            @JsonProperty("count") final String count,
             @JsonProperty("attributeList") final String attributeList,
             @JsonProperty("owner") final String owner,
             @JsonProperty("createdOn") final Date createdOn,
