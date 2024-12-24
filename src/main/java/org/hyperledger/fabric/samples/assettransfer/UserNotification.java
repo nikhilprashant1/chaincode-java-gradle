@@ -4,7 +4,6 @@ import com.owlike.genson.annotation.JsonProperty;
 import org.hyperledger.fabric.contract.annotation.DataType;
 import org.hyperledger.fabric.contract.annotation.Property;
 
-import java.util.Date;
 import java.util.Objects;
 
 @DataType
@@ -29,7 +28,7 @@ public class UserNotification {
     private final String owner;
 
     @Property()
-    private final Date createdOn;
+    private final String createdOn;
 
     @Property()
     private final String message;
@@ -65,7 +64,7 @@ public class UserNotification {
         return message;
     }
 
-    public Date getCreatedOn() {
+    public String getCreatedOn() {
         return createdOn;
     }
 
@@ -80,7 +79,7 @@ public class UserNotification {
             @JsonProperty("count") final String count,
             @JsonProperty("attributeList") final String attributeList,
             @JsonProperty("owner") final String owner,
-            @JsonProperty("createdOn") final Date createdOn,
+            @JsonProperty("createdOn") final String createdOn,
             @JsonProperty("message") final String message,
             @JsonProperty("status") final String status) {
         this.id = id;
