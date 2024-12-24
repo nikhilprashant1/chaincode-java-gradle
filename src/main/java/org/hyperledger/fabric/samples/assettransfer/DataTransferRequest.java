@@ -77,7 +77,7 @@ public final class DataTransferRequest implements ContractInterface {
             throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_ALREADY_EXISTS.toString());
         }
 
-        return putAsset(ctx, new DataRequest(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted));
+        return putAsset(ctx, new DataRequest("data_" + requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted));
     }
 
     private DataRequest putAsset(final Context ctx, final DataRequest dataRequest) {
@@ -97,10 +97,10 @@ public final class DataTransferRequest implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public DataRequest FindByRequestId(final Context ctx, final String requestId) {
-        String assetJSON = ctx.getStub().getStringState(requestId);
+        String assetJSON = ctx.getStub().getStringState("data_" + requestId);
 
         if (assetJSON == null || assetJSON.isEmpty()) {
-            String errorMessage = String.format("Asset %s does not exist", requestId);
+            String errorMessage = String.format("DataRequest %s does not exist", requestId);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
@@ -113,7 +113,7 @@ public final class DataTransferRequest implements ContractInterface {
         List<DataRequest> matchingAssets = new ArrayList<>();
 
         // Use getStateByRange to iterate over all assets and filter by campaignId
-        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("data_", "data_\uFFFF");
 
         for (KeyValue result : results) {
             DataRequest asset = genson.deserialize(result.getStringValue(), DataRequest.class);
@@ -156,7 +156,7 @@ public final class DataTransferRequest implements ContractInterface {
             throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
 
-        return putAsset(ctx, new DataRequest(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted));
+        return putAsset(ctx, new DataRequest("data_" + requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted));
     }
 
     /**
@@ -185,9 +185,16 @@ public final class DataTransferRequest implements ContractInterface {
      */
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public boolean DataRequestExists(final Context ctx, final String requestId) {
-        String assetJSON = ctx.getStub().getStringState(requestId);
+        String assetJSON = ctx.getStub().getStringState(addDataPrefixIfNotPresent(requestId));
 
         return (assetJSON != null && !assetJSON.isEmpty());
+    }
+
+    public static String addDataPrefixIfNotPresent(String input) {
+        if (input != null && !input.startsWith("data_")) {
+            return "data_" + input;
+        }
+        return input;
     }
 
     /**
@@ -215,7 +222,7 @@ public final class DataTransferRequest implements ContractInterface {
         // Giving empty startKey & endKey is interpreted as all the keys from beginning to end.
         // As another example, if you use startKey = 'asset0', endKey = 'asset9' ,
         // then getStateByRange will retrieve asset with keys between asset0 (inclusive) and asset9 (exclusive) in lexical order.
-        QueryResultsIterator<KeyValue> results = stub.getStateByRange("", "");
+        QueryResultsIterator<KeyValue> results = stub.getStateByRange("data_", "data_\uFFFF");
 
         for (KeyValue result: results) {
             DataRequest dataRequest = genson.deserialize(result.getStringValue(), DataRequest.class);

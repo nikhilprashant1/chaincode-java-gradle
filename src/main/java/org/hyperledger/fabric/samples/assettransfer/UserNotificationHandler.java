@@ -2,7 +2,6 @@ package org.hyperledger.fabric.samples.assettransfer;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.hyperledger.fabric.contract.Context;
@@ -39,10 +38,11 @@ public final class UserNotificationHandler implements ContractInterface {
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public void InitNotificationLedger(final Context ctx) {
+        // Initialize the ledger if needed
     }
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public void CreateUserNotification(
+    public UserNotification CreateUserNotification(
             final Context ctx,
             final String notificationId,
             final String requestId,
@@ -50,6 +50,7 @@ public final class UserNotificationHandler implements ContractInterface {
             final String count,
             final String attributeList,
             final String owner,
+            final String createdOn,
             final String message,
             final String status
     ) {
@@ -58,27 +59,25 @@ public final class UserNotificationHandler implements ContractInterface {
             throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_ALREADY_EXISTS.toString());
         }
 
-        UserNotification notification = new UserNotification(notificationId, requestId, campaignId, count,
-                attributeList, owner, new Date(), message, status
-        );
+        UserNotification notification = new UserNotification("notification_" + notificationId, requestId, campaignId, count,
+                attributeList, owner, createdOn, message, status);
 
-        String notificationJSON = genson.serialize(notification);
-        ctx.getStub().putState(notificationId, notificationJSON.getBytes(StandardCharsets.UTF_8));
+        String notificationJson = genson.serialize(notification);
+        ctx.getStub().putStringState("notification_" + notificationId, notificationJson);
+
+        return notification;
     }
-
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public UserNotification ReadNotification(final Context ctx, final String notificationId) {
-        byte[] notificationBytes = ctx.getStub().getState(notificationId);
+        byte[] notificationBytes = ctx.getStub().getState("notification_" + notificationId);
         if (notificationBytes == null || notificationBytes.length == 0) {
             String errorMessage = String.format("Notification %s does not exist", notificationId);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
         }
 
-        String notificationJSON = new String(notificationBytes, StandardCharsets.UTF_8);
-        return genson.deserialize(notificationJSON, UserNotification.class);
+        return genson.deserialize(new String(notificationBytes, StandardCharsets.UTF_8), UserNotification.class);
     }
-
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public UserNotification UpdateNotification(
@@ -89,6 +88,7 @@ public final class UserNotificationHandler implements ContractInterface {
             final String count,
             final String attributeList,
             final String owner,
+            final String createdOn,
             final String message,
             final String status
     ) {
@@ -97,45 +97,62 @@ public final class UserNotificationHandler implements ContractInterface {
             throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
         }
 
-        UserNotification notification = ReadNotification(ctx, notificationId);
+        UserNotification notification = new UserNotification(addNotificationPrefixIfNotPresent(notificationId), requestId, campaignId, count,
+                attributeList, owner, createdOn, message, status);
 
-        String updatedNotificationJSON = genson.serialize(notification);
-        return putAsset(ctx, new UserNotification(notificationId, requestId, campaignId, count,
-                attributeList, owner, new Date(), message, status));
+        String notificationJson = genson.serialize(notification);
+        ctx.getStub().putStringState(addNotificationPrefixIfNotPresent(notificationId), notificationJson);
+
+        return notification;
+    }
+
+    @Transaction(intent = Transaction.TYPE.SUBMIT)
+    public void DeleteNotification(final Context ctx, final String notificationId) {
+        if (!NotificationExists(ctx, notificationId)) {
+            String errorMessage = String.format("Notification %s does not exist", notificationId);
+            throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
+        }
+
+        ctx.getStub().delState("notification_" + notificationId);
     }
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String FindByOwner(final Context ctx, final String owner) {
-        List<UserNotification> matchingAssets = new ArrayList<>();
+    public UserNotification FindNotificationById(final Context ctx, final String id) {
+        String assetJSON = ctx.getStub().getStringState(addNotificationPrefixIfNotPresent(id));
 
-        // Use getStateByRange to iterate over all assets and filter by campaignId
-        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
-
-        for (KeyValue result : results) {
-            UserNotification userNotification = genson.deserialize(result.getStringValue(), UserNotification.class);
-            if (!Boolean.TRUE.equals(userNotification.getOwner().equals(owner))) {
-                matchingAssets.add(userNotification);
-            }
-        }
-
-        if (matchingAssets.isEmpty()) {
-            String errorMessage = String.format("No non-deleted assets found for Owner %s", owner);
+        if (assetJSON == null || assetJSON.isEmpty()) {
+            String errorMessage = String.format("Notification %s does not exist", id);
             System.out.println(errorMessage);
             throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
         }
 
-        return genson.serialize(matchingAssets);
+        return genson.deserialize(assetJSON, UserNotification.class);
     }
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String FindByRequestId(final Context ctx, final String requestId) {
+    public String FindNotificationsByOwner(final Context ctx, final String owner) {
+        List<UserNotification> matchingNotifications = new ArrayList<>();
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("notification_", "notification_\uFFFF");
+
+        for (KeyValue result : results) {
+            UserNotification notification = genson.deserialize(result.getStringValue(), UserNotification.class);
+            if (notification.getOwner().equals(owner)) {
+                matchingNotifications.add(notification);
+            }
+        }
+
+        return genson.serialize(matchingNotifications);
+    }
+
+    @Transaction(intent = Transaction.TYPE.EVALUATE)
+    public String FindNotificationByRequestId(final Context ctx, final String requestId) {
         List<UserNotification> matchingAssets = new ArrayList<>();
 
-        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("notification_", "notification_\uFFFF");
 
         for (KeyValue result : results) {
             UserNotification userNotification = genson.deserialize(result.getStringValue(), UserNotification.class);
-            if (!Boolean.TRUE.equals(userNotification.getRequestId().equals(requestId))) {
+            if (Boolean.TRUE.equals(userNotification.getRequestId().equals(requestId))) {
                 matchingAssets.add(userNotification);
             }
         }
@@ -150,29 +167,36 @@ public final class UserNotificationHandler implements ContractInterface {
     }
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public UserNotification FindByCampaignId(final Context ctx, final String campaignId) {
+    public String FindNotificationByCampaignId(final Context ctx, final String campaignId) {
 
+        List<UserNotification> matchingAssets = new ArrayList<>();
         QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
 
         for (KeyValue result : results) {
             UserNotification userNotification = genson.deserialize(result.getStringValue(), UserNotification.class);
-            if (!Boolean.TRUE.equals(userNotification.getCampaignId().equals(campaignId))) {
-                return userNotification;
+            if (Boolean.TRUE.equals(userNotification.getCampaignId().equals(campaignId))) {
+                matchingAssets.add(userNotification);
             }
         }
 
-        return null;
+        if (matchingAssets.isEmpty()) {
+            String errorMessage = String.format("No non-deleted assets found for Campaign Id %s", campaignId);
+            System.out.println(errorMessage);
+            throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
+        }
+
+        return genson.serialize(matchingAssets);
     }
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String FindByOrgId(final Context ctx, final String orgId) {
+    public String FindNotificationByOrgId(final Context ctx, final String orgId) {
         List<UserNotification> matchingAssets = new ArrayList<>();
 
-        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("notification_", "notification_\uFFFF");
 
         for (KeyValue result : results) {
             UserNotification userNotification = genson.deserialize(result.getStringValue(), UserNotification.class);
-            if (!Boolean.TRUE.equals(userNotification.getCampaignId().equals(orgId))) {
+            if (Boolean.TRUE.equals(userNotification.getOwner().equals(orgId))) {
                 matchingAssets.add(userNotification);
             }
         }
@@ -187,60 +211,35 @@ public final class UserNotificationHandler implements ContractInterface {
     }
 
     private UserNotification putAsset(final Context ctx, final UserNotification userNotification) {
-        // Use Genson to convert the Asset into string, sort it alphabetically and serialize it into a json string
         String sortedJson = genson.serialize(userNotification);
         ctx.getStub().putStringState(userNotification.getRequestId(), sortedJson);
 
         return userNotification;
     }
 
-    @Transaction(intent = Transaction.TYPE.SUBMIT)
-    public void DeleteNotification(final Context ctx, final String notificationId) {
-        if (!NotificationExists(ctx, notificationId)) {
-            String errorMessage = String.format("Notification %s does not exist", notificationId);
-            throw new ChaincodeException(errorMessage, AssetTransferErrors.NOTIFICATION_NOT_FOUND.toString());
-        }
-
-        ctx.getStub().delState(notificationId);
-    }
-
-    @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public String FindNotificationsByOwner(final Context ctx, final String owner) {
-        List<UserNotification> matchingNotifications = new ArrayList<>();
-        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("", "");
-
-        for (KeyValue result : results) {
-            UserNotification notification = genson.deserialize(result.getStringValue(), UserNotification.class);
-            if (notification.getOwner().equals(owner)) {
-                matchingNotifications.add(notification);
-            }
-        }
-
-        return genson.serialize(matchingNotifications);
-    }
-
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public String GetAllUserNotifications(final Context ctx) {
-        ChaincodeStub stub = ctx.getStub();
-
-        List<UserNotification> queryResults = new ArrayList<>();
-
-        QueryResultsIterator<KeyValue> results = stub.getStateByRange("", "");
+        List<UserNotification> notifications = new ArrayList<>();
+        QueryResultsIterator<KeyValue> results = ctx.getStub().getStateByRange("notification_", "notification_\uFFFF");
 
         for (KeyValue result : results) {
             UserNotification notification = genson.deserialize(result.getStringValue(), UserNotification.class);
-            System.out.println(notification);
-            queryResults.add(notification);
+            notifications.add(notification);
         }
 
-        return genson.serialize(queryResults);
+        return genson.serialize(notifications);
     }
-
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public boolean NotificationExists(final Context ctx, final String notificationId) {
-        byte[] notificationBytes = ctx.getStub().getState(notificationId);
+        byte[] notificationBytes = ctx.getStub().getState(addNotificationPrefixIfNotPresent("notification_" + notificationId));
         return notificationBytes != null && notificationBytes.length > 0;
     }
 
+    public static String addNotificationPrefixIfNotPresent(String input) {
+        if (input != null && !input.startsWith("notification_")) {
+            return "notification_" + input;
+        }
+        return input;
+    }
 }
