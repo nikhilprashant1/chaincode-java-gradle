@@ -68,7 +68,7 @@ public final class DataTransferRequest implements ContractInterface {
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public DataRequest CreateDataRequest(final Context ctx, final String requestId, final String description, final String createdOn,
                                          final String updatedOn, final String createdBy,
-                                         final String owner, String attributeCodeList, String approvers,
+                                         final String owner, String attributeCodeList, String attributeStatusList, String approvers,
                                          String campaignId, final Boolean deleted) {
 
         if (DataRequestExists(ctx, requestId)) {
@@ -77,7 +77,7 @@ public final class DataTransferRequest implements ContractInterface {
             throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_ALREADY_EXISTS.toString());
         }
 
-        return putAsset(ctx, new DataRequest("data_" + requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted));
+        return putAsset(ctx, new DataRequest("data_" + requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, attributeStatusList, approvers, campaignId, deleted));
     }
 
     private DataRequest putAsset(final Context ctx, final DataRequest dataRequest) {
@@ -147,7 +147,7 @@ public final class DataTransferRequest implements ContractInterface {
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public DataRequest UpdateDataRequest(final Context ctx, final String requestId, final String description, final String createdOn,
                                          final String updatedOn, final String createdBy,
-                                         final String owner, String attributeCodeList, String approvers,
+                                         final String owner, String attributeCodeList, String attributeStatusList, String approvers,
                                          String campaignId, final Boolean deleted) {
 
         if (!DataRequestExists(ctx, requestId)) {
@@ -156,7 +156,7 @@ public final class DataTransferRequest implements ContractInterface {
             throw new ChaincodeException(errorMessage, DataTransferErrors.DATA_NOT_FOUND.toString());
         }
 
-        return putAsset(ctx, new DataRequest("data_" + requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted));
+        return putAsset(ctx, new DataRequest("data_" + requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, attributeStatusList, approvers, campaignId, deleted));
     }
 
     /**
