@@ -36,6 +36,13 @@ public class UserNotification {
     @Property()
     private final String status;
 
+    @Property()
+    private final String userType;
+
+    @Property()
+    private final String isRead;
+
+
     public String getId() {
         return id;
     }
@@ -71,6 +78,11 @@ public class UserNotification {
     public String getStatus() {
         return status;
     }
+    public String getUserType(){ return userType; }
+
+    public String getIsRead() {
+        return isRead;
+    }
 
     public UserNotification(
             @JsonProperty("id") final String id,
@@ -81,7 +93,9 @@ public class UserNotification {
             @JsonProperty("owner") final String owner,
             @JsonProperty("createdOn") final String createdOn,
             @JsonProperty("message") final String message,
-            @JsonProperty("status") final String status) {
+            @JsonProperty("status") final String status,
+            @JsonProperty("status") final String userType,
+            @JsonProperty("status") final String isRead) {
         this.id = id;
         this.requestId = requestId;
         this.campaignId = campaignId;
@@ -91,6 +105,8 @@ public class UserNotification {
         this.createdOn = createdOn;
         this.message = message;
         this.status = status;
+        this.userType=userType;
+        this.isRead=isRead;
     }
 
 
@@ -104,7 +120,7 @@ public class UserNotification {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, requestId, campaignId, count, attributeList, owner, createdOn, message, status);
+        return Objects.hash(id, requestId, campaignId, count, attributeList, owner, createdOn, message, status,userType,isRead);
     }
 
     @Override
@@ -117,7 +133,8 @@ public class UserNotification {
                 ", attributeList='" + attributeList + '\'' +
                 ", owner='" + owner + '\'' +
                 ", createdOn=" + createdOn +
-                ", message='" + message + '\'' +
+                ", userType='" + userType + '\'' +
+                ", isRead='" + isRead + '\'' +
                 ", status=" + status +
                 '}';
     }
