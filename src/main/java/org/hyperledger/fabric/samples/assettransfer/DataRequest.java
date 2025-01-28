@@ -36,6 +36,9 @@ public final class DataRequest {
     private String attributeCodeList;
 
     @Property()
+    private String attributeStatusList;
+
+    @Property()
     private String approvers;
 
     @Property()
@@ -74,6 +77,8 @@ public final class DataRequest {
 
     public String getAttributeCodeList(){return attributeCodeList;}
 
+    public String getAttributeStatusList(){return attributeStatusList;}
+
     public String getApprovers(){return approvers;}
 
     public String getCampaignId(){return campaignId;}
@@ -85,8 +90,8 @@ public final class DataRequest {
     public DataRequest(@JsonProperty("requestId") final String requestId, @JsonProperty("description") final String description,
                        @JsonProperty("createdOn") final String createdOn, @JsonProperty("updatedOn") final String updatedOn,
                        @JsonProperty("createdBy") final String createdBy, @JsonProperty("owner") final String owner,
-                       @JsonProperty("attributeCodeList") final String attributeCodeList, @JsonProperty("approvers") final String approvers,
-                       @JsonProperty("campaignId") final String campaignId, @JsonProperty("deleted") final Boolean deleted) {
+                       @JsonProperty("attributeCodeList") final String attributeCodeList, @JsonProperty("attributeStatusList") final String attributeStatusList,
+                       @JsonProperty("approvers") final String approvers, @JsonProperty("campaignId") final String campaignId, @JsonProperty("deleted") final Boolean deleted) {
         this.requestId = requestId;
         this.description = description;
         this.createdOn = createdOn;
@@ -94,6 +99,7 @@ public final class DataRequest {
         this.createdBy = createdBy;
         this.owner = owner;
         this.attributeCodeList = attributeCodeList;
+        this.attributeStatusList = attributeStatusList;
         this.approvers = approvers;
         this.campaignId = campaignId;
         this.deleted = deleted;
@@ -104,12 +110,12 @@ public final class DataRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DataRequest that = (DataRequest) o;
-        return Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(updatedOn, that.updatedOn) && Objects.equals(createdBy, that.createdBy) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId) && Objects.equals(deleted, that.deleted);
+        return Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(updatedOn, that.updatedOn) && Objects.equals(createdBy, that.createdBy) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(attributeStatusList, that.attributeStatusList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId) && Objects.equals(deleted, that.deleted);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, approvers, campaignId, deleted);
+        return Objects.hash(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, attributeStatusList, approvers, campaignId, deleted);
     }
 
     @Override
@@ -122,6 +128,7 @@ public final class DataRequest {
                 ", createdBy='" + createdBy + '\'' +
                 ", owner='" + owner + '\'' +
                 ", attributeCodeList='" + attributeCodeList + '\'' +
+                ", attributeStatusList='" + attributeStatusList + '\'' +
                 ", approvers='" + approvers + '\'' +
                 ", campaignId='" + campaignId + '\'' +
                 ", deleted=" + deleted +
