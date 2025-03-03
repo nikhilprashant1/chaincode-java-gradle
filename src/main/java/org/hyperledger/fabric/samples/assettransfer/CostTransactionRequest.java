@@ -15,7 +15,7 @@ import com.owlike.genson.Genson;
         info = @Info(
                 title = "Cost Transfer",
                 description = "Handles cost transfer operations",
-                version = "0.0.1-SNAPSHOT",
+                version = "0.0.2-SNAPSHOT",
                 license = @License(
                         name = "Apache 2.0 License",
                         url = "http://www.apache.org/licenses/LICENSE-2.0.html"),
@@ -38,23 +38,21 @@ public final class CostTransactionRequest implements ContractInterface {
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public CampaignTransaction CreateCampaignTransaction(final Context ctx,
-                                                                   final String id,
-                                                                   final String dataRequestId,
-                                                                   final String campaignId,
-                                                                   final Double costPerImpression,
-                                                                   final Double channelCostPerImpression,
-                                                                   final Long intersectionDataCount,
-                                                                   final String channel,
-                                                                   final Double totalCost,
-                                                                   final Double dataCost,
-                                                                   final Double platformShare,
-                                                                   final String dataProviderShare,
-                                                                   final String dataProviderShareList) {
+                                                         final String id,
+                                                         final String dataRequestId,
+                                                         final String campaignId,
+                                                         final Double costPerImpression,
+                                                         final Double channelCostPerImpression,
+                                                         final Long intersectionDataCount,
+                                                         final String channel,
+                                                         final Double totalCost,
+                                                         final Double dataCost,
+                                                         final Double platformShare,
+                                                         final String dataProviderShare,
+                                                         final String dataProviderShareList) {
 
         if (CampaignTransactionExists(ctx, id)) {
-            String errorMessage = String.format("Asset %s already exists", id);
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, "CAMPAIGN_COST_ALREADY_EXISTS");
+            throw new ChaincodeException("Asset " + id + " already exists", "CAMPAIGN_COST_ALREADY_EXISTS");
         }
 
         return putAsset(ctx, new CampaignTransaction("cost_" + id, dataRequestId, campaignId,
@@ -64,8 +62,7 @@ public final class CostTransactionRequest implements ContractInterface {
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public boolean CampaignTransactionExists(final Context ctx, final String id) {
-        ChaincodeStub stub = ctx.getStub();
-        String data = stub.getStringState(id);
+        String data = ctx.getStub().getStringState("cost_" + id);
         return (data != null && !data.isEmpty());
     }
 
@@ -79,30 +76,28 @@ public final class CostTransactionRequest implements ContractInterface {
     public CampaignTransaction FindByTransferId(final Context ctx, final String transferId) {
         String assetJSON = ctx.getStub().getStringState("cost_" + transferId);
         if (assetJSON == null || assetJSON.isEmpty()) {
-            throw new ChaincodeException(String.format("Cost Transfer %s does not exist", transferId), CostTransferErrors.COST_NOT_FOUND.toString());
+            throw new ChaincodeException("Cost Transfer " + transferId + " does not exist", CostTransferErrors.COST_NOT_FOUND.toString());
         }
         return genson.deserialize(assetJSON, CampaignTransaction.class);
     }
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public CampaignTransaction UpdateCampaignTransaction(final Context ctx,
-                                                                   final String id,
-                                                                   final String dataRequestId,
-                                                                   final String campaignId,
-                                                                   final Double costPerImpression,
-                                                                   final Double channelCostPerImpression,
-                                                                   final Long intersectionDataCount,
-                                                                   final String channel,
-                                                                   final Double totalCost,
-                                                                   final Double dataCost,
-                                                                   final Double platformShare,
-                                                                   final String dataProviderShare,
-                                                                   final String dataProviderShareList) {
+                                                         final String id,
+                                                         final String dataRequestId,
+                                                         final String campaignId,
+                                                         final Double costPerImpression,
+                                                         final Double channelCostPerImpression,
+                                                         final Long intersectionDataCount,
+                                                         final String channel,
+                                                         final Double totalCost,
+                                                         final Double dataCost,
+                                                         final Double platformShare,
+                                                         final String dataProviderShare,
+                                                         final String dataProviderShareList) {
 
         if (!CampaignTransactionExists(ctx, id)) {
-            String errorMessage = String.format("Asset %s does not exist", id);
-            System.out.println(errorMessage);
-            throw new ChaincodeException(errorMessage, "CAMPAIGN_COST_NOT_FOUND");
+            throw new ChaincodeException("Asset " + id + " does not exist", "CAMPAIGN_COST_NOT_FOUND");
         }
 
         return putAsset(ctx, new CampaignTransaction("cost_" + id, dataRequestId, campaignId,
@@ -112,31 +107,25 @@ public final class CostTransactionRequest implements ContractInterface {
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public void DeleteCostTransfer(final Context ctx, final String transferId) {
-        if (!CostTransferExists(ctx, transferId)) {
-            throw new ChaincodeException(String.format("Cost Transfer %s does not exist", transferId), CostTransferErrors.COST_NOT_FOUND.toString());
+        if (!CampaignTransactionExists(ctx, transferId)) {
+            throw new ChaincodeException("Cost Transfer " + transferId + " does not exist", CostTransferErrors.COST_NOT_FOUND.toString());
         }
-        ctx.getStub().delState(transferId);
-    }
-
-    @Transaction(intent = Transaction.TYPE.EVALUATE)
-    public boolean CostTransferExists(final Context ctx, final String transferId) {
-        String assetJSON = ctx.getStub().getStringState(addCostPrefixIfNotPresent(transferId));
-        return (assetJSON != null && !assetJSON.isEmpty());
-    }
-
-    public static String addCostPrefixIfNotPresent(String input) {
-        return (input != null && !input.startsWith("cost_")) ? "cost_" + input : input;
+        ctx.getStub().delState("cost_" + transferId);
     }
 
     @Transaction(intent = Transaction.TYPE.EVALUATE)
     public String GetAllCostTransfers(final Context ctx) {
         ChaincodeStub stub = ctx.getStub();
+
+        String query = "{ \"selector\": { \"id\": { \"$regex\": \"^cost_\" } } }";
         List<CampaignTransaction> queryResults = new ArrayList<>();
-        QueryResultsIterator<KeyValue> results = stub.getStateByRange("cost_", "cost_￿");
+        QueryResultsIterator<KeyValue> results = stub.getQueryResult(query);
+
         for (KeyValue result : results) {
             CampaignTransaction costTransfer = genson.deserialize(result.getStringValue(), CampaignTransaction.class);
             queryResults.add(costTransfer);
         }
+
         return genson.serialize(queryResults);
     }
 }
