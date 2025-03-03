@@ -5,6 +5,9 @@
 package org.hyperledger.fabric.samples.assettransfer;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.hyperledger.fabric.contract.*;
 import org.hyperledger.fabric.contract.annotation.Contract;
 import org.hyperledger.fabric.contract.annotation.Default;
@@ -21,7 +24,8 @@ public final class DataTransferRequest implements ContractInterface {
 
     private enum DataTransferErrors {
         DATA_NOT_FOUND,
-        DATA_ALREADY_EXISTS
+        DATA_ALREADY_EXISTS,
+        UNAUTHORIZED
     }
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
@@ -78,7 +82,63 @@ public final class DataTransferRequest implements ContractInterface {
         if (!DataRequestExists(ctx, requestId)) {
             throw new ChaincodeException("Asset " + requestId + " does not exist", DataTransferErrors.DATA_NOT_FOUND.toString());
         }
-        return putAsset(ctx, new DataRequest(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, attributeStatusList, approvers, campaignId, costPerImpression, deleted));
+
+        ClientIdentity clientIdentity = ctx.getClientIdentity();
+        String mspId = clientIdentity.getMSPID();
+        String peerCertSubject = clientIdentity.getX509Certificate().getSubjectX500Principal().getName();
+
+        List<AttributeStatus> attributeStatuses = parseAttributeStatuses(attributeStatusList);
+
+        Map<String, String> peerApprovalMap = new HashMap<>();
+        peerApprovalMap.put("org1-peer1", "750ae4a4-5140-43c4-9e88-867ca57604d0");
+        peerApprovalMap.put("org1-peer2", "e791a26f-dfa3-4644-8050-8f8917ce4e7d");
+
+        String peerIdentityKey = extractPeerIdentity(peerCertSubject);
+
+        for (AttributeStatus attrStatus : attributeStatuses) {
+            if ("approved".equalsIgnoreCase(attrStatus.getStatus())) {
+                String allowedOrgId = peerApprovalMap.get(peerIdentityKey);
+
+                if (allowedOrgId == null || !allowedOrgId.equals(attrStatus.getOrgId())) {
+                    throw new ChaincodeException("Unauthorized approval attempt for orgId " + attrStatus.getOrgId(),
+                            DataTransferErrors.UNAUTHORIZED.toString());
+                }
+            }
+        }
+
+        return putAsset(ctx, new DataRequest(requestId, description, createdOn, updatedOn, createdBy, owner,
+                attributeCodeList, attributeStatusList, approvers, campaignId,
+                costPerImpression, deleted));
+    }
+
+    public static List<AttributeStatus> parseAttributeStatuses(String attributeStatusString) {
+        List<AttributeStatus> attributeStatuses = new ArrayList<>();
+
+        Pattern pattern = Pattern.compile(
+                "AttributeStatus\\(name=(.*?), orgId=(.*?), status=(.*?)\\)");
+
+        Matcher matcher = pattern.matcher(attributeStatusString);
+
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            String orgId = matcher.group(2);
+            String status = matcher.group(3);
+
+            AttributeStatus attributeStatus = new AttributeStatus(name, orgId, status);
+
+            attributeStatuses.add(attributeStatus);
+        }
+
+        return attributeStatuses;
+    }
+
+    private String extractPeerIdentity(String certSubject) {
+        if (certSubject.contains("CN=peer1")) {
+            return "org1-peer1";
+        } else if (certSubject.contains("CN=peer2")) {
+            return "org1-peer2";
+        }
+        return "unknown-peer";
     }
 
     @Transaction(intent = Transaction.TYPE.SUBMIT)
