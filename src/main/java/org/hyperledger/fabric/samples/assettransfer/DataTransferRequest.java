@@ -9,14 +9,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.hyperledger.fabric.contract.*;
-import org.hyperledger.fabric.contract.annotation.Contract;
-import org.hyperledger.fabric.contract.annotation.Default;
-import org.hyperledger.fabric.contract.annotation.Transaction;
+import org.hyperledger.fabric.contract.annotation.*;
 import org.hyperledger.fabric.shim.*;
 import org.hyperledger.fabric.shim.ledger.*;
 import com.owlike.genson.Genson;
 
-@Contract(name = "dataRequestBlock")
+@Contract(
+        name = "dataRequestBlock",
+        info = @Info(
+                title = "Asset Transfer",
+                description = "The hyperlegendary asset transfer",
+                version = "0.0.1-SNAPSHOT",
+                license = @License(
+                        name = "Apache 2.0 License",
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.html"),
+                contact = @Contact(
+                        email = "a.transfer@example.com",
+                        name = "Data Transfer",
+                        url = "https://hyperledger.example.com")))
 @Default
 public final class DataTransferRequest implements ContractInterface {
 
@@ -84,14 +94,14 @@ public final class DataTransferRequest implements ContractInterface {
         }
 
         ClientIdentity clientIdentity = ctx.getClientIdentity();
-        String mspId = clientIdentity.getMSPID();
+//        String mspId = clientIdentity.getMSPID();
         String peerCertSubject = clientIdentity.getX509Certificate().getSubjectX500Principal().getName();
 
         List<AttributeStatus> attributeStatuses = parseAttributeStatuses(attributeStatusList);
 
         Map<String, String> peerApprovalMap = new HashMap<>();
-        peerApprovalMap.put("org1-peer1", "750ae4a4-5140-43c4-9e88-867ca57604d0");
-        peerApprovalMap.put("org1-peer2", "e791a26f-dfa3-4644-8050-8f8917ce4e7d");
+        peerApprovalMap.put("org1.peer1", "750ae4a4-5140-43c4-9e88-867ca57604d0");
+        peerApprovalMap.put("org1.peer2", "e791a26f-dfa3-4644-8050-8f8917ce4e7d");
 
         String peerIdentityKey = extractPeerIdentity(peerCertSubject);
 
@@ -100,7 +110,7 @@ public final class DataTransferRequest implements ContractInterface {
                 String allowedOrgId = peerApprovalMap.get(peerIdentityKey);
 
                 if (allowedOrgId == null || !allowedOrgId.equals(attrStatus.getOrgId())) {
-                    throw new ChaincodeException("Unauthorized approval attempt for orgId " + attrStatus.getOrgId(),
+                    throw new ChaincodeException("Unauthorized approval attempt for orgId " + attrStatus.getOrgId() + " " + peerIdentityKey,
                             DataTransferErrors.UNAUTHORIZED.toString());
                 }
             }

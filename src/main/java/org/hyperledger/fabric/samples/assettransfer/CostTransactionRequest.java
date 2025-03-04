@@ -15,7 +15,7 @@ import com.owlike.genson.Genson;
         info = @Info(
                 title = "Cost Transfer",
                 description = "Handles cost transfer operations",
-                version = "0.0.2-SNAPSHOT",
+                version = "0.0.1-SNAPSHOT",
                 license = @License(
                         name = "Apache 2.0 License",
                         url = "http://www.apache.org/licenses/LICENSE-2.0.html"),
@@ -23,7 +23,6 @@ import com.owlike.genson.Genson;
                         email = "cost.transfer@example.com",
                         name = "Cost Transfer",
                         url = "https://hyperledger.example.com")))
-@Default
 public final class CostTransactionRequest implements ContractInterface {
 
     private final Genson genson = new Genson();

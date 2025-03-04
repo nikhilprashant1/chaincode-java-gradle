@@ -16,10 +16,15 @@ import com.owlike.genson.Genson;
         name = "notificationRequestBlock",
         info = @Info(
                 title = "Notification Handler",
-                description = "The hyperledger notification transfer",
-                version = "0.0.1-SNAPSHOT"
-        )
-)
+                description = "The hyperlegendary notification transfer",
+                version = "0.0.1-SNAPSHOT",
+                license = @License(
+                        name = "Apache 2.0 License",
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.html"),
+                contact = @Contact(
+                        email = "b.transfer@example.com",
+                        name = "Notification Transfer",
+                        url = "https://hyperledger.example.com")))
 public final class UserNotificationHandler implements ContractInterface {
 
     private final Genson genson = new Genson();
