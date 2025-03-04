@@ -45,6 +45,9 @@ public final class DataRequest {
     private String campaignId;
 
     @Property()
+    private String campaignName;
+
+    @Property()
     private String costPerImpression;
 
     @Property()
@@ -86,6 +89,8 @@ public final class DataRequest {
 
     public String getCampaignId(){return campaignId;}
 
+    public String getCampaignName(){return campaignName;}
+
     public String getCostPerImpression(){return costPerImpression;}
 
     public Boolean getDeleted() {
@@ -97,7 +102,8 @@ public final class DataRequest {
                        @JsonProperty("createdBy") final String createdBy, @JsonProperty("owner") final String owner,
                        @JsonProperty("attributeCodeList") final String attributeCodeList, @JsonProperty("attributeStatusList") final String attributeStatusList,
                        @JsonProperty("approvers") final String approvers, @JsonProperty("campaignId") final String campaignId,
-                       @JsonProperty("costPerImpression") final String costPerImpression, @JsonProperty("deleted") final Boolean deleted) {
+                       @JsonProperty("campaignName") final String campaignName, @JsonProperty("costPerImpression") final String costPerImpression,
+                       @JsonProperty("deleted") final Boolean deleted) {
         this.requestId = requestId;
         this.description = description;
         this.createdOn = createdOn;
@@ -108,6 +114,7 @@ public final class DataRequest {
         this.attributeStatusList = attributeStatusList;
         this.approvers = approvers;
         this.campaignId = campaignId;
+        this.campaignName = campaignName;
         this.costPerImpression = costPerImpression;
         this.deleted = deleted;
     }
@@ -117,12 +124,12 @@ public final class DataRequest {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DataRequest that = (DataRequest) o;
-        return Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(updatedOn, that.updatedOn) && Objects.equals(createdBy, that.createdBy) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(attributeStatusList, that.attributeStatusList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId) && Objects.equals(costPerImpression, that.costPerImpression) && Objects.equals(deleted, that.deleted);
+        return Objects.equals(requestId, that.requestId) && Objects.equals(description, that.description) && Objects.equals(createdOn, that.createdOn) && Objects.equals(updatedOn, that.updatedOn) && Objects.equals(createdBy, that.createdBy) && Objects.equals(owner, that.owner) && Objects.equals(attributeCodeList, that.attributeCodeList) && Objects.equals(attributeStatusList, that.attributeStatusList) && Objects.equals(approvers, that.approvers) && Objects.equals(campaignId, that.campaignId) && Objects.equals(campaignName, that.campaignName) && Objects.equals(costPerImpression, that.costPerImpression) && Objects.equals(deleted, that.deleted);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, attributeStatusList, approvers, campaignId, costPerImpression, deleted);
+        return Objects.hash(requestId, description, createdOn, updatedOn, createdBy, owner, attributeCodeList, attributeStatusList, approvers, campaignId, campaignName, costPerImpression, deleted);
     }
 
     @Override
@@ -138,6 +145,7 @@ public final class DataRequest {
                 ", attributeStatusList='" + attributeStatusList + '\'' +
                 ", approvers='" + approvers + '\'' +
                 ", campaignId='" + campaignId + '\'' +
+                ", campaignName='" + campaignName + '\'' +
                 ", costPerImpression='" + costPerImpression + '\'' +
                 ", deleted=" + deleted +
                 '}';
