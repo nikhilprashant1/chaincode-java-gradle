@@ -17,7 +17,6 @@ import org.hyperledger.fabric.shim.ledger.*;
 import com.owlike.genson.Genson;
 
 @Contract(name = "dataRequestBlock")
-@Default
 public final class DataTransferRequest implements ContractInterface {
 
     private final Genson genson = new Genson();
