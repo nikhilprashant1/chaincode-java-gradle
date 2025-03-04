@@ -38,6 +38,9 @@ public final class DataTransferRequest implements ContractInterface {
         UNAUTHORIZED
     }
 
+    Map<String, String> peerApprovalMap = new HashMap<>(Map.of("org1-peer1", "750ae4a4-5140-43c4-9e88-867ca57604d0",
+            "org1-peer2", "e791a26f-dfa3-4644-8050-8f8917ce4e7d"));
+
     @Transaction(intent = Transaction.TYPE.SUBMIT)
     public void InitLedger(final Context ctx) {}
 
@@ -98,10 +101,6 @@ public final class DataTransferRequest implements ContractInterface {
         String peerCertSubject = clientIdentity.getX509Certificate().getSubjectX500Principal().getName();
 
         List<AttributeStatus> attributeStatuses = parseAttributeStatuses(attributeStatusList);
-
-        Map<String, String> peerApprovalMap = new HashMap<>();
-        peerApprovalMap.put("org1-peer1", "750ae4a4-5140-43c4-9e88-867ca57604d0");
-        peerApprovalMap.put("org1-peer2", "e791a26f-dfa3-4644-8050-8f8917ce4e7d");
 
         String peerIdentityKey = extractPeerIdentity(peerCertSubject);
 
